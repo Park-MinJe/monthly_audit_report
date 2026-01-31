@@ -1,3 +1,8 @@
+config/test_local.bat
+config/test_local.ps1
+reports/*
+state/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

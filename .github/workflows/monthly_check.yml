@@ -1,0 +1,59 @@
+name: opengov-monthly-check
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"  # UTC 00:00 = KST 09:00, 매월 1일
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run
+        env:
+          ORGS_XLSX_PATH: "config/managed_orgs.xlsx"
+          STATE_SEEN_PATH: "state/seen.json"
+          STATE_CACHE_DOCS_PATH: "state/cache_docs.json"
+          REPORT_DIR: "reports"
+
+          # Crawler controls
+          OPENGOV_MAX_PAGES: "300"          # list pages to crawl (increase if needed)
+          OPENGOV_STOP_AFTER_EMPTY: "2"     # stop if N consecutive empty pages
+          OPENGOV_HTTP_TIMEOUT_SEC: "30"
+
+          # Quarter rules
+          QUARTER_BUFFER_DAYS: "30"
+          QUARTER_LOOKBACK_COUNT: "8"       # show last N quarters per org
+
+          # Summarizer provider: openai | hf | none
+          SUMMARY_PROVIDER: "openai"
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: "gpt-4.1-mini"
+
+          # TODO notify
+
+          # Optional - put a public base URL so Kakao can open the report.
+          # Recommended: https://raw.githubusercontent.com/<owner>/<repo>/main
+          # REPORT_BASE_URL: ${{ secrets.REPORT_BASE_URL }}
+
+        run: python -m src.main
+
+      - name: Commit outputs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add reports state/seen.json state/cache_docs.json
+          git commit -m "monthly opengov report" || echo "no changes"
+          git push
