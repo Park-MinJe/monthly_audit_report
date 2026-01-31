@@ -52,7 +52,6 @@ def _summarize_openai(text: str) -> str:
         r = requests.post(url, headers=headers, json=body, timeout=60)
         r.raise_for_status()
         data = r.json()
-        print(f"res => {data}")
         return data["choices"][0]["message"]["content"].strip()
     except Exception as e:
         return f"(OpenAI 요약 실패: {e})"

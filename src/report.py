@@ -4,6 +4,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import re
+from pathlib import Path
 from .timeutil import YearMonth, ym_to_str, iter_last_n_quarters, quarter_deadline, YearQuarter, report_quarters
 
 @dataclass
@@ -103,6 +105,33 @@ def build_monthly_markdown(
 
 def write_report(report_dir: str, ym: YearMonth, content: str) -> str:
     Path(report_dir).mkdir(parents=True, exist_ok=True)
-    path = Path(report_dir) / f"{ym_to_str(ym)}.md"
-    path.write_text(content, encoding="utf-8")
-    return str(path)
+
+    base = ym_to_str(ym)
+    base_path = Path(report_dir) / f"{base}.md"
+
+    # 1) If base does not exist, use it
+    if not base_path.exists():
+        base_path.write_text(content, encoding="utf-8")
+        return str(base_path)
+
+    # 2) Base exists: find max existing suffix and add 1
+    # Matches: {base}-NN.md where NN is 2+ digits (we'll still emit 2 digits)
+    pattern = re.compile(rf"^{re.escape(base)}_(\d+)\.md$")
+
+    max_n = 0
+    for p in Path(report_dir).iterdir():
+        if not p.is_file():
+            continue
+        m = pattern.match(p.name)
+        if m:
+            try:
+                n = int(m.group(1))
+                if n > max_n:
+                    max_n = n
+            except ValueError:
+                pass
+
+    next_n = max_n + 1
+    out_path = Path(report_dir) / f"{base}_{next_n:02d}.md"
+    out_path.write_text(content, encoding="utf-8")
+    return str(out_path)
