@@ -27,6 +27,7 @@ jobs:
         run: |
           pwd
           ls -R
+          curl -X GET https://opengov.seoul.go.kr/expense/list | grep "검색결과"
 
       - name: Run
         env:
