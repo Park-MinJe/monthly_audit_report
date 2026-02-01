@@ -48,7 +48,7 @@ def parse_date_loose(s: str) -> Optional[date]:
 def get_soup(url: str, session: requests.Session, timeout_sec: int) -> BeautifulSoup:
     r = session.get(url, timeout=timeout_sec)
     r.raise_for_status()
-    return BeautifulSoup(r.text, "lxml")
+    return BeautifulSoup(r.text, "html.parser")
 
 def list_page_url(target_y: int, page: int, items_per_page: int = 50) -> str:
     # reflect user's example: dept[0]=delegation, ym year/month all, page=N
@@ -93,6 +93,7 @@ def fetch_total_count(
     soup = get_soup(url, session, timeout_sec)
 
     # 1) Primary: exact CSS corresponding to the xpath you gave
+    print("Start extracting total count by full xpath")
     el = soup.select_one(_TOTAL_STRONG_CSS)
     if el:
         total = _parse_int_from_text(el.get_text(strip=True))
@@ -101,6 +102,7 @@ def fetch_total_count(
             return total
 
     # 2) Fallback : scan whole page text for a "검색결과:N" pattern
+    print("Start extracting total count by fallback")
     page_text = soup.get_text(" ", strip=True)
     m = re.search(r"검색결과\s*:\s*([\d,]+)", page_text)
     if m:
