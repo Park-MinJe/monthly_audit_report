@@ -23,6 +23,11 @@ jobs:
       - name: Install deps
         run: pip install -r requirements.txt
 
+      - name: Debug
+        run: |
+          pwd
+          ls -R
+
       - name: Run
         env:
           ORGS_XLSX_PATH: "config/managed_orgs.xlsx"
@@ -50,7 +55,7 @@ jobs:
           # Recommended: https://raw.githubusercontent.com/<owner>/<repo>/main
           # REPORT_BASE_URL: ${{ secrets.REPORT_BASE_URL }}
 
-        run: python -u src/main
+        run: python -u src/main.py
 
       - name: Commit outputs
         run: |
