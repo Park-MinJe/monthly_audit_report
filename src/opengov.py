@@ -97,21 +97,14 @@ def fetch_total_count(
     if el:
         total = _parse_int_from_text(el.get_text(strip=True))
         if total is not None:
+            print("success to fetch total count")
             return total
 
-    # 2) Fallback A: any strong that looks like a total count label area
-    # (this is intentionally loose to survive layout shifts)
-    for strong in soup.select("strong"):
-        total = _parse_int_from_text(strong.get_text(" ", strip=True))
-        if total is not None and total > 0:
-            # This may over-match if there are other strong numbers;
-            # if that happens, tighten this fallback with nearby text patterns.
-            return total
-
-    # 3) Fallback B: scan whole page text for a "총 N" pattern
+    # 2) Fallback : scan whole page text for a "검색결과:N" pattern
     page_text = soup.get_text(" ", strip=True)
-    m = re.search(r"총\s*([\d,]+)", page_text)
+    m = re.search(r"검색결과\s*:\s*([\d,]+)", page_text)
     if m:
+        print("success to fetch total count by fallback")
         return _parse_int_from_text(m.group(1))
 
     return None
@@ -132,14 +125,16 @@ def fetch_docs_all(
     Crawl list pages by increasing page=1..N. Stop when we see N consecutive pages with 0 rows.
     """
     target_y = target_ym.year
-    if target_ym.month == 1:
+    if target_ym.month <= 2:
         target_y = target_y-1
 
     total = None
     try:
         total = fetch_total_count(session, timeout_sec, items_per_page, target_y)
     except Exception:
+        print("Failed to fetch total count")
         total = None
+        return
     print(f'# Total elements {total}')
 
     max_pages = max_pages_fallback

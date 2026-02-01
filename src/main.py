@@ -107,6 +107,9 @@ def main() -> None:
         stop_after_empty=s.opengov_stop_after_empty,
         timeout_sec=s.opengov_http_timeout_sec,
     )
+    if docs is None:
+        print("크롤링에 실패하였습니다.")
+        return
     print("##########크롤링 끝##########")
 
     # Month docs: only those with pub_date in previous month
