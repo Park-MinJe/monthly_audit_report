@@ -38,7 +38,7 @@ jobs:
           # Crawler controls
           OPENGOV_MAX_PAGES: "300"          # list pages to crawl (increase if needed)
           OPENGOV_STOP_AFTER_EMPTY: "2"     # stop if N consecutive empty pages
-          OPENGOV_HTTP_TIMEOUT_SEC: "30"
+          OPENGOV_HTTP_TIMEOUT_SEC: "300"
 
           # Quarter rules
           QUARTER_BUFFER_DAYS: "30"
