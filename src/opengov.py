@@ -46,9 +46,15 @@ def parse_date_loose(s: str) -> Optional[date]:
         return None
 
 def get_soup(url: str, session: requests.Session, timeout_sec: int) -> BeautifulSoup:
-    r = session.get(url, timeout=timeout_sec)
-    r.raise_for_status()
-    return BeautifulSoup(r.text, "html.parser")
+    try:
+        r = session.get(url, timeout=timeout_sec)
+        r.raise_for_status()
+        return BeautifulSoup(r.text, "html.parser")
+    except requests.exceptions.HTTPError as e:
+        print(f"HTTP error occurred: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request error occurred: {e}")
+    return None
 
 def list_page_url(target_y: int, page: int, items_per_page: int = 50) -> str:
     # reflect user's example: dept[0]=delegation, ym year/month all, page=N
@@ -91,6 +97,8 @@ def fetch_total_count(
     """
     url = list_page_url(page=1, items_per_page=items_per_page, target_y=target_y)
     soup = get_soup(url, session, timeout_sec)
+    if soup is None:
+        raise Exception("Failed to fetch total count")
 
     # 1) Primary: exact CSS corresponding to the xpath you gave
     print("Start extracting total count by full xpath")
@@ -133,8 +141,8 @@ def fetch_docs_all(
     total = None
     try:
         total = fetch_total_count(session, timeout_sec, items_per_page, target_y)
-    except Exception:
-        print("Failed to fetch total count")
+    except Exception as e:
+        print(e)
         total = None
         return
     print(f'# Total elements {total}')
