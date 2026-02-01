@@ -11,6 +11,8 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_STEP_DEBUG: true
     steps:
       - uses: actions/checkout@v4
 
@@ -48,7 +50,7 @@ jobs:
           # Recommended: https://raw.githubusercontent.com/<owner>/<repo>/main
           # REPORT_BASE_URL: ${{ secrets.REPORT_BASE_URL }}
 
-        run: python -m src.main
+        run: python -u src.main
 
       - name: Commit outputs
         run: |
